@@ -35,7 +35,6 @@ namespace UnityTemplateProjects
                         for(int i = 0; i < floatArray.Length; i += 3)
                         {
                             vectorList.Add(new Vector3(floatArray[i], floatArray[i + 2], floatArray[i + 1]));
-                            //Debug.Log($"{(new Vector3(floatArray[i], floatArray[i + 2], floatArray[i + 1])).ToString()}");
 
                             if(vectorList.Count >= 6)
                             {
@@ -43,7 +42,6 @@ namespace UnityTemplateProjects
                                 vectorList.Clear();
                             }
                         }
-                        Debug.Log($"{vectorList.Count}");
                     }
                 }
             }
