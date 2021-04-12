@@ -79,12 +79,48 @@ namespace UnityTemplateProjects
             var meshVertices = mesh.vertices;
             var normals = mesh.normals;
             Vector2[] uvs = new Vector2[meshVertices.Length];
+
             for(int i = 0; i < uvs.Length; i++)
             {
-                uvs[i] = new Vector2(0, 0);
+                float angle = Vector3.SignedAngle(transform.up, transform.forward - normals[i], -transform.forward);
+                if(angle >= 180 && angle <= 220)
+                    uvs[i] = SetFrontTexture();
+                else if(normals[i].y == Vector3.up.y || normals[i].y == Vector3.down.y)
+                    uvs[i] = SetTopDownTexture();
+                else
+                    uvs[i] = SetSideTexture();
+
+                Debug.Log(angle);
             }
 
             mesh.uv = uvs;
+        }
+
+        private Vector2 SetFrontTexture()
+        {
+            int x = 512;
+            int y = 512;
+            int width = 512;
+            int height = 512;
+            return new Vector2(width / 1024, height / 512);
+        }
+
+        private Vector2 SetSideTexture()
+        {
+            int x = 768;
+            int y = 512;
+            int width = 256;
+            int height = 512;
+            return new Vector2(width / 1024, height / 512);
+        }
+
+        private Vector2 SetTopDownTexture()
+        {
+            int x = 1023;
+            int y = 512;
+            int width = 255;
+            int height = 512;
+            return new Vector2(width / 1024, height / 512);
         }
 
         private APIResponseData LoadData()
