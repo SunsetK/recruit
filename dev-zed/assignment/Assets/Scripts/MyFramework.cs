@@ -65,7 +65,7 @@ namespace UnityTemplateProjects
 
             var material = new Material(Shader.Find("Unlit/Texture"));
             material.SetTexture("_MainTex", m_texture);
-            material.SetTextureScale("_BaseMap", new Vector2(1f, 3));
+            //material.SetTextureScale("_BaseMap", new Vector2(1f, 3));
             obj.GetComponent<MeshRenderer>().material = material;
 
             mesh.RecalculateBounds();
@@ -89,8 +89,6 @@ namespace UnityTemplateProjects
                     uvs[i] = SetTopDownTexture();
                 else
                     uvs[i] = SetSideTexture();
-
-                Debug.Log(angle);
             }
 
             mesh.uv = uvs;
