@@ -16,6 +16,11 @@ namespace UnityTemplateProjects
             Draw();
         }
 
+        public void OnDestroy()
+        {
+            m_texture = null;
+        }
+
         private void Init()
         {
             m_data = LoadData();
@@ -60,21 +65,19 @@ namespace UnityTemplateProjects
             GameObject obj = new GameObject();
             obj.AddComponent<MeshFilter>();
             obj.AddComponent<MeshRenderer>();
-
             obj.GetComponent<MeshFilter>().mesh = mesh;
 
             var material = new Material(Shader.Find("Unlit/Texture"));
             material.SetTexture("_MainTex", m_texture);
-            //material.SetTextureScale("_BaseMap", new Vector2(1f, 3));
-            obj.GetComponent<MeshRenderer>().material = material;
+            material.SetTextureScale("_MainTex", new Vector2(1f, (int)((float)mesh.vertices.Max(t => t.y) / 3f)));
 
-            mesh.RecalculateBounds();
+            obj.GetComponent<MeshRenderer>().material = material;
             mesh.RecalculateNormals();
 
-            TextureMapping(ref mesh);
+            TextureMapping(mesh, obj);
         }
 
-        private void TextureMapping(ref Mesh mesh)
+        private void TextureMapping(Mesh mesh, GameObject gameObject)
         {
             var meshVertices = mesh.vertices;
             var normals = mesh.normals;
@@ -82,43 +85,68 @@ namespace UnityTemplateProjects
 
             for(int i = 0; i < uvs.Length; i++)
             {
-                float angle = Vector3.SignedAngle(transform.up, transform.forward - normals[i], -transform.forward);
-                if(angle >= 180 && angle <= 220)
-                    uvs[i] = SetFrontTexture();
-                else if(normals[i].y == Vector3.up.y || normals[i].y == Vector3.down.y)
-                    uvs[i] = SetTopDownTexture();
+                if(Math.Abs(normals[i].y) >= 0.5f)
+                {
+                    uvs[i] = GetTopBottomTextureUV(mesh.vertices[i], mesh.vertices);
+                }
                 else
-                    uvs[i] = SetSideTexture();
+                {
+                    var angle1 = Vector3.SignedAngle(gameObject.transform.forward, normals[i], Vector3.up) + 180.0f;
+                    var angle2 = Vector3.SignedAngle(-gameObject.transform.forward, normals[i], Vector3.up) + 180.0f;
+
+                    if((180.0f <= angle1 && angle1 <= 220.0f) || (180.0f <= angle2 && angle2 <= 220.0f))
+                        uvs[i] = GetFrontTextureUV(mesh.vertices[i], mesh.vertices);
+                    else
+                        uvs[i] = GetSideTextureUV(mesh.vertices[i], mesh.vertices);
+                }
             }
 
             mesh.uv = uvs;
         }
 
-        private Vector2 SetFrontTexture()
+        private Vector2 GetFrontTextureUV(Vector3 meshVertice, Vector3[] meshVertices)
         {
-            int x = 512;
-            int y = 512;
-            int width = 512;
-            int height = 512;
-            return new Vector2(width / 1024, height / 512);
+            float minX = meshVertices.Min(t => t.x);
+            float maxX = meshVertices.Max(t => t.x);
+            var normalizedX = Mathf.InverseLerp(minX, maxX, meshVertice.x);
+            var x = Mathf.Lerp(0.0f, 512.0f, normalizedX) / 1024.0f;
+
+            float minY = meshVertices.Min(t => t.y);
+            float maxY = meshVertices.Max(t => t.y);
+            var normalizedY = Mathf.InverseLerp(minY, maxY, meshVertice.y);
+            var y = Mathf.Lerp(0.0f, 256.0f, normalizedY) / 512.0f;
+
+            return new Vector2(x, y);
         }
 
-        private Vector2 SetSideTexture()
+        private Vector2 GetSideTextureUV(Vector3 meshVertice, Vector3[] meshVertices)
         {
-            int x = 768;
-            int y = 512;
-            int width = 256;
-            int height = 512;
-            return new Vector2(width / 1024, height / 512);
+            float minZ = meshVertices.Min(t => t.z);
+            float maxZ = meshVertices.Max(t => t.z);
+            var normalizedZ = Mathf.InverseLerp(minZ, maxZ, meshVertice.z);
+            var z = Mathf.Lerp(512.0f, 768.0f, normalizedZ) / 1024.0f;
+
+            float minY = meshVertices.Min(t => t.y);
+            float maxY = meshVertices.Max(t => t.y);
+            var normalizedY = Mathf.InverseLerp(minY, maxY, meshVertice.y);
+            var y = Mathf.Lerp(0.0f, 256.0f, normalizedY) / 512.0f;
+
+            return new Vector2(z, y);
         }
 
-        private Vector2 SetTopDownTexture()
+        private Vector2 GetTopBottomTextureUV(Vector3 meshVertice, Vector3[] meshVertices)
         {
-            int x = 1023;
-            int y = 512;
-            int width = 255;
-            int height = 512;
-            return new Vector2(width / 1024, height / 512);
+            float minX = meshVertices.Min(t => t.x);
+            float maxX = meshVertices.Max(t => t.x);
+            var normalizedX = Mathf.InverseLerp(minX, maxX, meshVertice.x);
+            var x = (Mathf.Lerp(768.0f, 1024.0f, normalizedX)) / 1024.0f;
+
+            float minZ = meshVertices.Min(t => t.z);
+            float maxZ = meshVertices.Max(t => t.z);
+            var normalizedZ = Mathf.InverseLerp(minZ, maxZ, meshVertice.z);
+            var z = Mathf.Lerp(0.0f, 512.0f, normalizedZ) / 512.0f;
+
+            return new Vector2(x, z);
         }
 
         private APIResponseData LoadData()

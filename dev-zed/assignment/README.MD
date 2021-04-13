@@ -26,3 +26,10 @@
 
 
 ## 문제1의 결과를 바탕으로 생성된 메쉬에 텍스쳐를 매핑
+1. normal값을 이용해 y가 0.5이상일 경우, 3번 위, 아래 텍스쳐를 세팅하도록 한다.
+2. 메시 게임오브젝트의 forward와 normal값 사이의 각도를 구하기 위해 Vector3.SignedAngle를 이용한다.
+3. Vector3.SignedAngle는 -180~180 사이의 각도를 구하기 때문에 180을 더한다.
+4. 이 값이 180~220사이의 값이 나오면 앞면 텍스쳐를 세팅하도록 한다.
+5. 시계방향, 반시계방향의 각도 둘다를 구하기 위해
+Vector3.SignedAngle(gameObject.transform.forward, normals[i], Vector3.up) + 180.0f, Vector3.SignedAngle(-gameObject.transform.forward, normals[i], Vector3.up) + 180.0f 두개의 값을 이용해 조건에 맞는지 확인한다(180.0 <= angle && angle <= 220.0)
+6. 그외엔 모두 측면 텍스쳐를 세팅하도록 한다.
